@@ -33,7 +33,7 @@ namespace FragLabs.Aural.Encoding
     public interface IBufferEncoder : IDisposable
     {
         /// <summary>
-        /// Encode samples.
+        /// Encode audio samples.
         /// </summary>
         /// <param name="srcPcmSamples">PCM samples to be encoded.</param>
         /// <param name="srcOffset">The zero-based byte offset in srcPcmSamples at which to begin reading PCM samples.</param>

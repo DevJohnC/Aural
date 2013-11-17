@@ -41,8 +41,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CpuArchitecture.cs" />
+    <Compile Include="Encoding\IBufferDecoder.cs" />
     <Compile Include="Encoding\IBufferEncoder.cs" />
     <Compile Include="Encoding\ISteamEncoder.cs" />
+    <Compile Include="Encoding\OpusDecoder.cs" />
     <Compile Include="Encoding\OpusEncoder.cs" />
     <Compile Include="Encoding\Opus\API.cs" />
     <Compile Include="Encoding\Opus\Application.cs" />

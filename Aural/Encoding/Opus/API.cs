@@ -62,7 +62,7 @@ namespace FragLabs.Aural.Encoding.Opus
         internal static extern void opus_decoder_destroy(IntPtr decoder);
 
         [DllImport("opus.dll", CallingConvention = CallingConvention.Cdecl)]
-        internal static extern int opus_decode(IntPtr decoder, byte[] data, int len, IntPtr pcm, int frameSize, int decodeFec);
+        internal static extern int opus_decode(IntPtr decoder, IntPtr data, int len, IntPtr pcm, int frameSize, int decodeFec);
 
         [DllImport("opus.dll", CallingConvention = CallingConvention.Cdecl)]
         internal static extern int opus_encoder_ctl(IntPtr encoder, Ctl request, int value);

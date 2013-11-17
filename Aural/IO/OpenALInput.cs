@@ -108,6 +108,11 @@ namespace FragLabs.Aural.IO
             API.alcCaptureStart(_device);
         }
 
+        ~OpenALInput()
+        {
+            Dispose();
+        }
+
         /// <summary>
         /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
         /// </summary>
