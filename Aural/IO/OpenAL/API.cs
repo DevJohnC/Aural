@@ -137,7 +137,7 @@ namespace FragLabs.Aural.IO.OpenAL
         internal static extern void alGenBuffers(int count, uint[] bufferIDs);
 
         [DllImport("openal.dll", CallingConvention = CallingConvention.Cdecl)]
-        internal static extern void alBufferData(uint bufferID, AudioFormat format, byte[] data, int byteSize, uint frequency);
+        internal static extern void alBufferData(uint bufferID, AudioFormat format, IntPtr data, int byteSize, uint frequency);
 
         [DllImport("openal.dll", CallingConvention = CallingConvention.Cdecl)]
         internal static extern void alDeleteBuffers(int numBuffers, uint[] bufferIDs);
