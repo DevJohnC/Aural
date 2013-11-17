@@ -82,7 +82,7 @@ namespace FragLabs.Aural.Encoding
             Application = application;
 
             const int bitdepth = 16;
-            _sampleSize = (bitdepth / 8) * srcChannelCount;
+            _sampleSize = FormatHelper.SampleSize(bitdepth, srcChannelCount);
 
             PermittedFrameSizes = new int[_permittedFrameSizes.Length];
             for (var i = 0; i < _permittedFrameSizes.Length; i++)
@@ -107,29 +107,26 @@ namespace FragLabs.Aural.Encoding
         /// <returns>The total number of bytes written to dstOutputBuffer.</returns>
         public unsafe int Encode(byte[] srcPcmSamples, int srcOffset, byte[] dstOutputBuffer, int dstOffset, int sampleCount)
         {
+            if (srcPcmSamples == null) throw new ArgumentNullException("srcPcmSamples");
+            if (dstOutputBuffer == null) throw new ArgumentNullException("dstOutputBuffer");
             if (!PermittedFrameSizes.Contains(sampleCount))
                 throw new Exception("Frame size is not permitted");
             var readSize = _sampleSize*sampleCount;
             if (srcOffset + readSize > srcPcmSamples.Length)
                 throw new Exception("Not enough samples in source");
             var maxSizeBytes = dstOutputBuffer.Length - dstOffset;
-            var encoded = new byte[maxSizeBytes];
             int encodedLen;
-            fixed (byte* benc = encoded)
+            fixed (byte* benc = dstOutputBuffer)
             {
-                var encodedPtr = new IntPtr(benc);
-                if (srcOffset != 0)
+                fixed (byte* bsrc = srcPcmSamples)
                 {
-                    var srcBuffer = new byte[readSize];
-                    Buffer.BlockCopy(srcPcmSamples, srcOffset, srcBuffer, 0, readSize);
-                    encodedLen = API.opus_encode(_encoder, srcBuffer, sampleCount, encodedPtr, maxSizeBytes);
+                    var encodedPtr = IntPtr.Add(new IntPtr(benc), dstOffset);
+                    var pcmPtr = IntPtr.Add(new IntPtr(bsrc), srcOffset);
+                    encodedLen = API.opus_encode(_encoder, pcmPtr, sampleCount, encodedPtr, maxSizeBytes);
                 }
-                else
-                    encodedLen = API.opus_encode(_encoder, srcPcmSamples, sampleCount, encodedPtr, maxSizeBytes);
             }
             if (encodedLen < 0)
                 throw new Exception("Encoding failed - " + ((Errors)encodedLen).ToString());
-            Buffer.BlockCopy(encoded, 0, dstOutputBuffer, dstOffset, encodedLen);
             return encodedLen;
         }
 

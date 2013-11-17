@@ -48,15 +48,30 @@
     <Compile Include="Encoding\Opus\Application.cs" />
     <Compile Include="Encoding\Opus\Ctl.cs" />
     <Compile Include="Encoding\Opus\Errors.cs" />
+    <Compile Include="FormatHelper.cs" />
     <Compile Include="IO\IAudioInput.cs" />
     <Compile Include="IO\IAudioOutput.cs" />
     <Compile Include="IO\OpenALInput.cs" />
+    <Compile Include="IO\OpenAL\ALCEnum.cs" />
+    <Compile Include="IO\OpenAL\ALCStrings.cs" />
+    <Compile Include="IO\OpenAL\ALEnum.cs" />
+    <Compile Include="IO\OpenAL\API.cs" />
+    <Compile Include="IO\OpenAL\AudioFormat.cs" />
+    <Compile Include="IO\OpenAL\FloatSourceProperty.cs" />
+    <Compile Include="IO\OpenAL\IntSourceProperty.cs" />
+    <Compile Include="IO\OpenAL\SourceState.cs" />
     <Compile Include="LibraryLoader.cs" />
     <Compile Include="PlatformDetails.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Libs\32bit\openal.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Libs\32bit\opus.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Libs\64bit\openal.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Libs\64bit\opus.dll">
@@ -64,7 +79,7 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="IO\OpenAL\" />
+    <Folder Include="Processing\Filters\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

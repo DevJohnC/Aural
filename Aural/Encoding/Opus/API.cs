@@ -46,52 +46,6 @@ namespace FragLabs.Aural.Encoding.Opus
             }
         }
 
-        internal static IntPtr opus_encoder_create(int sampleRate, int channelCount, int application, out IntPtr error)
-        {
-            return APIBinding.opus_encoder_create(sampleRate, channelCount, application, out error);
-        }
-
-        internal static void opus_encoder_destroy(IntPtr encoder)
-        {
-            APIBinding.opus_encoder_destroy(encoder);
-        }
-
-        internal static int opus_encode(IntPtr encoder, byte[] pcm, int frameSize, IntPtr data, int maxDataBytes)
-        {
-            return APIBinding.opus_encode(encoder, pcm, frameSize, data, maxDataBytes);
-        }
-
-        internal static IntPtr opus_decoder_create(int sampleRate, int channelCount, out IntPtr error)
-        {
-            return APIBinding.opus_decoder_create(sampleRate, channelCount, out error);
-        }
-
-        internal static void opus_decoder_destroy(IntPtr decoder)
-        {
-            APIBinding.opus_decoder_destroy(decoder);
-        }
-
-        internal static int opus_decode(IntPtr decoder, byte[] data, int len, IntPtr pcm, int frameSize, int decodeFec)
-        {
-            return APIBinding.opus_decode(decoder, data, len, pcm, frameSize, decodeFec);
-        }
-
-        internal static int opus_encoder_ctl(IntPtr encoder, Ctl request, int value)
-        {
-            return APIBinding.opus_encoder_ctl(encoder, request, value);
-        }
-
-        internal static int opus_encoder_ctl(IntPtr encoder, Ctl request, out int value)
-        {
-            return APIBinding.opus_encoder_ctl(encoder, request, out value);
-        }
-    }
-
-    /// <summary>
-    /// Wraps the Opus API.
-    /// </summary>
-    internal class APIBinding
-    {
         [DllImport("opus.dll", CallingConvention = CallingConvention.Cdecl)]
         internal static extern IntPtr opus_encoder_create(int sampleRate, int channelCount, int application, out IntPtr error);
 
@@ -99,7 +53,7 @@ namespace FragLabs.Aural.Encoding.Opus
         internal static extern void opus_encoder_destroy(IntPtr encoder);
 
         [DllImport("opus.dll", CallingConvention = CallingConvention.Cdecl)]
-        internal static extern int opus_encode(IntPtr encoder, byte[] pcm, int frameSize, IntPtr data, int maxDataBytes);
+        internal static extern int opus_encode(IntPtr encoder, IntPtr pcm, int frameSize, IntPtr data, int maxDataBytes);
 
         [DllImport("opus.dll", CallingConvention = CallingConvention.Cdecl)]
         internal static extern IntPtr opus_decoder_create(int sampleRate, int channelCount, out IntPtr error);

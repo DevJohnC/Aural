@@ -32,6 +32,13 @@ namespace FragLabs.Aural.IO
     /// </summary>
     public interface IAudioInput : IDisposable
     {
-         
+        /// <summary>
+        /// Reads audio samples from the input device into a buffer.
+        /// </summary>
+        /// <param name="buffer">An array of bytes. When this method returns, the buffer contains the specified byte array with the values starting at offset replaced with audio samples.</param>
+        /// <param name="offset">The zero-based byte offset in dstOutputBuffer at which to begin writing audio samples.</param>
+        /// <param name="sampleCount">The number of samples, per channel, to read.</param>
+        /// <returns>The total number of bytes written to buffer.</returns>
+        int Read(byte[] buffer, int offset, int sampleCount);
     }
 }

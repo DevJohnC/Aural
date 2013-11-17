@@ -43,7 +43,7 @@ namespace FragLabs.Aural
         /// <returns></returns>
         internal static IntPtr Load(string fileName)
         {
-            LoadLibrary(fileName);
+            return LoadLibrary(fileName);
         }
     }
 }
