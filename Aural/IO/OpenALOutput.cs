@@ -25,6 +25,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using FragLabs.Aural.IO.OpenAL;
 
 namespace FragLabs.Aural.IO
@@ -34,6 +35,63 @@ namespace FragLabs.Aural.IO
     /// </summary>
     public class OpenALOutput : IAudioOutput
     {
+        public static string[] GetOutputDevices()
+        {
+            var strings = new string[0];
+            if (GetIsExtensionPresent("ALC_ENUMERATE_ALL_EXT"))
+            {
+                strings =
+                    ReadStringsFromMemory(API.alcGetString(IntPtr.Zero,
+                                                            (int)ALCStrings.ALC_ALL_DEVICES_SPECIFIER));
+            }
+            else if (GetIsExtensionPresent("ALC_ENUMERATION_EXT"))
+            {
+                strings =
+                    ReadStringsFromMemory(API.alcGetString(IntPtr.Zero, (int)ALCStrings.ALC_DEVICE_SPECIFIER));
+            }
+            return strings;
+        }
+
+        private static string[] ReadStringsFromMemory(IntPtr location)
+        {
+            var strings = new List<string>();
+
+            var lastNull = false;
+            var i = -1;
+            byte c;
+            while (!((c = Marshal.ReadByte(location, ++i)) == '\0' && lastNull))
+            {
+                if (c == '\0')
+                {
+                    lastNull = true;
+
+                    strings.Add(Marshal.PtrToStringAnsi(location, i));
+                    location = new IntPtr((long)location + i + 1);
+                    i = -1;
+                }
+                else
+                    lastNull = false;
+            }
+
+            return strings.ToArray();
+        }
+
+        private static bool GetIsExtensionPresent(string extension)
+        {
+            sbyte result;
+            if (extension.StartsWith("ALC"))
+            {
+                result = API.alcIsExtensionPresent(IntPtr.Zero, extension);
+            }
+            else
+            {
+                result = API.alIsExtensionPresent(extension);
+                //  todo: check for errors here
+            }
+
+            return (result == 1);
+        }
+
         public uint OutputSampleRate { get; private set; }
         public int BitDepth { get; private set; }
         public int ChannelCount { get; private set; }
@@ -56,9 +114,19 @@ namespace FragLabs.Aural.IO
         private readonly Queue<uint> _availableBuffers = new Queue<uint>();
 
         /// <summary>
+        /// Buffers queued for playback on the source.
+        /// </summary>
+        private readonly List<uint> _queuedBuffers = new List<uint>(); 
+
+        /// <summary>
         /// OpenAL context.
         /// </summary>
         private IntPtr _context;
+
+        /// <summary>
+        /// Token issued by PlaybackDevice.
+        /// </summary>
+        private int _token;
 
         public OpenALOutput(string deviceName, int outputSampleRate, int bitDepth, int channelCount)
         {
@@ -81,9 +149,15 @@ namespace FragLabs.Aural.IO
 
             _sampleSize = FormatHelper.SampleSize(bitDepth, channelCount);
             _context = PlaybackDevice.GetContext(deviceName);
+            _token = PlaybackDevice.GetToken(deviceName);
             //  todo: error checking
             CreateSource();
             CreateBuffers(6);
+        }
+
+        ~OpenALOutput()
+        {
+            Dispose();
         }
 
         private void CreateSource()
@@ -104,7 +178,7 @@ namespace FragLabs.Aural.IO
                 API.alcMakeContextCurrent(_context);
                 var buffers = new uint[bufferCount];
                 API.alGenBuffers(bufferCount, buffers);
-                foreach(var buffer in buffers)
+                foreach (var buffer in buffers)
                     _availableBuffers.Enqueue(buffer);
             }
         }
@@ -126,11 +200,86 @@ namespace FragLabs.Aural.IO
                     API.alBufferData(bufferId, _format, pcmPtr, pcmLength, OutputSampleRate);
                     API.alSourceQueueBuffers(_source, 1, new[] {bufferId});
                 }
+                _queuedBuffers.Add(bufferId);
             }
             CleanupPlayedBuffers();
         }
 
-        private void CleanupPlayedBuffers()
+        /// <summary>
+        /// Begins playback.
+        /// </summary>
+        public void Play()
+        {
+            lock (typeof (PlaybackDevice))
+            {
+                API.alcMakeContextCurrent(_context);
+                API.alSourcePlay(_source);
+            }
+        }
+
+        /// <summary>
+        /// Pauses playback.
+        /// </summary>
+        public void Pause()
+        {
+            lock (typeof(PlaybackDevice))
+            {
+                API.alcMakeContextCurrent(_context);
+                API.alSourcePause(_source);
+            }
+        }
+
+        /// <summary>
+        /// Stops playback.
+        /// </summary>
+        public void Stop()
+        {
+            lock (typeof(PlaybackDevice))
+            {
+                API.alcMakeContextCurrent(_context);
+                API.alSourceStop(_source);
+            }
+        }
+
+        private SourceState State
+        {
+            get
+            {
+                if (_source == 0)
+                    return SourceState.Uninitialized;
+
+                int state;
+                API.alGetSourcei(_source, IntSourceProperty.AL_SOURCE_STATE, out state);
+
+                return (SourceState)state;
+            }
+        }
+
+        /// <summary>
+        /// Gets if the device is playing audio.
+        /// </summary>
+        public bool IsPlaying
+        {
+            get { return (State == SourceState.Playing); }
+        }
+
+        /// <summary>
+        /// Gets if the device is paused.
+        /// </summary>
+        public bool IsPaused
+        {
+            get { return (State == SourceState.Paused); }
+        }
+
+        /// <summary>
+        /// Gets if the device is stopped.
+        /// </summary>
+        public bool IsStopped
+        {
+            get { return (State == SourceState.Stopped); }
+        }
+
+        private void CleanupPlayedBuffers(bool destroy = false)
         {
             if (_source == 0) return;
             lock (typeof (PlaybackDevice))
@@ -142,9 +291,16 @@ namespace FragLabs.Aural.IO
 
                 var removedBuffers = new uint[buffers];
                 API.alSourceUnqueueBuffers(_source, buffers, removedBuffers);
-                foreach (var buffer in removedBuffers)
+                if (!destroy)
                 {
-                    _availableBuffers.Enqueue(buffer);
+                    foreach (var buffer in removedBuffers)
+                    {
+                        _availableBuffers.Enqueue(buffer);
+                    }
+                }
+                else
+                {
+                    API.alDeleteBuffers(buffers, removedBuffers);
                 }
             }
         }
@@ -155,7 +311,27 @@ namespace FragLabs.Aural.IO
         /// <filterpriority>2</filterpriority>
         public void Dispose()
         {
-            
+            if (_source != 0)
+            {
+                CleanupPlayedBuffers(true);
+                var buffers = _queuedBuffers.ToArray();
+                var removedBuffers = new uint[buffers.Length];
+                API.alSourceUnqueueBuffers(_source, buffers.Length, removedBuffers);
+                API.alDeleteBuffers(buffers.Length, removedBuffers);
+                lock (typeof (PlaybackDevice))
+                {
+                    API.alcMakeContextCurrent(_context);
+                    API.alDeleteSources(1, new [] {_source});
+                    _source = 0;
+                }
+            }
+            if (_context != IntPtr.Zero)
+                _context = IntPtr.Zero;
+            if (_token != 0)
+            {
+                PlaybackDevice.RetireToken(_token);
+                _token = 0;
+            }
         }
     }
 }

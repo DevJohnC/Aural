@@ -32,6 +32,14 @@ namespace FragLabs.Aural.IO
     /// </summary>
     public interface IAudioOutput : IDisposable
     {
-         
+        bool IsPlaying { get; }
+        bool IsStopped { get; }
+        bool IsPaused { get; }
+
+        void Play();
+        void Stop();
+        void Pause();
+
+        void Write(byte[] pcmBuffer, int offset, int sampleCount);
     }
 }

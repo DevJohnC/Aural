@@ -35,6 +35,8 @@ namespace FragLabs.Aural.IO.OpenAL
     {
         private static readonly Dictionary<string, IntPtr> OpenDevices = new Dictionary<string, IntPtr>();
         private static readonly Dictionary<string, IntPtr> OpenContexts = new Dictionary<string, IntPtr>();
+        private static readonly Dictionary<string, List<int>> OpenTokens = new Dictionary<string, List<int>>(); 
+        private static int _token;
 
         /// <summary>
         /// Gets a device, ensuring it's open if not already open.
@@ -62,6 +64,44 @@ namespace FragLabs.Aural.IO.OpenAL
                 if (!OpenContexts.ContainsKey(deviceName))
                     OpenContexts[deviceName] = API.alcCreateContext(device, IntPtr.Zero);
                 return OpenContexts[deviceName];
+            }
+        }
+
+        internal static int GetToken(string deviceName)
+        {
+            lock (typeof (PlaybackDevice))
+            {
+                if (_token == int.MaxValue)
+                    _token = 0;
+                _token++;
+                if (!OpenTokens.ContainsKey(deviceName))
+                    OpenTokens.Add(deviceName, new List<int>());
+                OpenTokens[deviceName].Add(_token);
+                return _token;
+            }
+        }
+
+        internal static void RetireToken(int token)
+        {
+            lock (typeof (PlaybackDevice))
+            {
+                foreach (var kvp in OpenTokens)
+                {
+                    if (kvp.Value.Contains(token))
+                    {
+                        kvp.Value.Remove(token);
+                        if (kvp.Value.Count == 0)
+                        {
+                            var context = OpenContexts[kvp.Key];
+                            var device = OpenDevices[kvp.Key];
+                            OpenContexts.Remove(kvp.Key);
+                            OpenDevices.Remove(kvp.Key);
+                            API.alcDestroyContext(context);
+                            API.alcCloseDevice(device);
+                        }
+                        break;
+                    }
+                }
             }
         }
     }
