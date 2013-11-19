@@ -41,7 +41,12 @@ namespace FragLabs.Aural.Encoding
         /// <summary>
         /// Size of a sample, in bytes.
         /// </summary>
-        private int _sampleSize;
+        private readonly int _sampleSize;
+
+        /// <summary>
+        /// Gets or sets if Forward Error Correction decoding is enabled.
+        /// </summary>
+        public bool FECEnabled { get; set; }
 
         public OpusDecoder(int outputSampleRate, int outputChannelCount)
         {
@@ -90,6 +95,7 @@ namespace FragLabs.Aural.Encoding
         /// <param name="dstBuffer">An array of bytes. When this method returns, the buffer contains the specified byte array with the values starting at offset replaced with audio samples.</param>
         /// <param name="dstOffset">The zero-based byte offset in dstBuffer at which to begin writing decoded audio samples.</param>
         /// <returns>The number of bytes decoded and written to dstBuffer.</returns>
+        /// <remarks>Set srcEncodedBuffer to null to instruct the decoder that a packet was dropped.</remarks>
         public unsafe int Decode(byte[] srcEncodedBuffer, int srcOffset, int srcLength, byte[] dstBuffer, int dstOffset)
         {
             var availableBytes = dstBuffer.Length - dstOffset;
@@ -97,11 +103,19 @@ namespace FragLabs.Aural.Encoding
             int length;
             fixed (byte* bdec = dstBuffer)
             {
-                fixed (byte* bsrc = srcEncodedBuffer)
+                var decodedPtr = IntPtr.Add(new IntPtr(bdec), dstOffset);
+                if (srcEncodedBuffer != null)
                 {
-                    var srcPtr = IntPtr.Add(new IntPtr(bsrc), srcOffset);
-                    var decodedPtr = IntPtr.Add(new IntPtr(bdec), dstOffset);
-                    length = API.opus_decode(_decoder, srcPtr, srcLength, decodedPtr, frameCount, 0);
+                    fixed (byte* bsrc = srcEncodedBuffer)
+                    {
+                        var srcPtr = IntPtr.Add(new IntPtr(bsrc), srcOffset);
+                        length = API.opus_decode(_decoder, srcPtr, srcLength, decodedPtr, frameCount, 0);
+                    }
+                }
+                else
+                {
+                    //  todo: check that frameCount is a multiple of 2.5ms
+                    length = API.opus_decode(_decoder, IntPtr.Zero, 0, decodedPtr, frameCount, Convert.ToInt32(FECEnabled));
                 }
             }
             if (length < 0)

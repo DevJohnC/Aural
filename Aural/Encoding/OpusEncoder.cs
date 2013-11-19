@@ -171,6 +171,31 @@ namespace FragLabs.Aural.Encoding
         }
 
         /// <summary>
+        /// Gets or sets if Forward Error Correction encoding is enabled.
+        /// </summary>
+        public bool FECEnabled
+        {
+            get
+            {
+                if (_encoder == IntPtr.Zero)
+                    throw new ObjectDisposedException("OpusEncoder");
+                int fec;
+                var ret = API.opus_encoder_ctl(_encoder, Ctl.GetInbandFECRequest, out fec);
+                if (ret < 0)
+                    throw new Exception("Encoder error - " + ((Errors)ret).ToString());
+                return fec > 0;
+            }
+            set
+            {
+                if (_encoder == IntPtr.Zero)
+                    throw new ObjectDisposedException("OpusEncoder");
+                var ret = API.opus_encoder_ctl(_encoder, Ctl.SetInbandFECRequest, Convert.ToInt32(value));
+                if (ret < 0)
+                    throw new Exception("Encoder error - " + ((Errors)ret).ToString());
+            }
+        }
+
+        /// <summary>
         /// Gets the sampling rate of the source stream.
         /// </summary>
         public int SourceSamplingRate { get; private set; }
