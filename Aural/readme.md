@@ -21,3 +21,4 @@ Parts of the included code are provided by 3rd parties:
 * OpenAL binding is based on and partially copied from Eric Maupin's [Gablarski](https://github.com/ermau/gablarski) project.
 * [Opus codec](http://www.opus-codec.org/) library is developed by the Xiph.Org Foundation.
 * [OpenAL Soft](http://kcat.strangesoft.net/openal.html) is developed by Chris Robinson (kcat(a)strangesoft.net).
+* The included FFT was developed by Gerald T. Beauregard. It is also available on his blog here: http://gerrybeauregard.wordpress.com/2011/04/01/an-fft-in-c/

@@ -67,6 +67,7 @@
     <Compile Include="IO\OpenAL\SourceState.cs" />
     <Compile Include="LibraryLoader.cs" />
     <Compile Include="PlatformDetails.cs" />
+    <Compile Include="Processing\FFT.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
