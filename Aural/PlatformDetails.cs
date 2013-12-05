@@ -40,6 +40,9 @@ namespace FragLabs.Aural
                 && Directory.Exists("/Users")
                 && Directory.Exists("/Volumes"))
                 IsMac = true;
+			if (Environment.OSVersion.Platform == PlatformID.Win32NT ||
+				Environment.OSVersion.Platform == PlatformID.Win32Windows)
+				IsWindows = true;
             if (IntPtr.Size == 4)
                 CpuArchitecture = CpuArchitecture.x86;
             else if (IntPtr.Size == 8)
@@ -57,5 +60,11 @@ namespace FragLabs.Aural
         /// Gets if the current system is a Mac OSX.
         /// </summary>
         public static bool IsMac { get; private set; }
+
+		/// <summary>
+		/// Gets if the current system is windows.
+		/// </summary>
+		/// <value><c>true</c> if is windows; otherwise, <c>false</c>.</value>
+		public static bool IsWindows { get; private set; }
     }
 }

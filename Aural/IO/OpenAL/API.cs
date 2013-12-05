@@ -25,6 +25,7 @@
 
 using System;
 using System.IO;
+using System.Reflection;
 using System.Runtime.InteropServices;
 
 namespace FragLabs.Aural.IO.OpenAL
@@ -33,135 +34,153 @@ namespace FragLabs.Aural.IO.OpenAL
     {
         static API()
         {
+            var image = IntPtr.Zero;
             if (PlatformDetails.IsMac)
             {
-                
+				image = LibraryLoader.Load("/System/Library/Frameworks/OpenAL.framework/OpenAL");
             }
-            else if (PlatformDetails.CpuArchitecture == CpuArchitecture.x86)
+			else if (PlatformDetails.IsWindows)
+			{
+	            if (PlatformDetails.CpuArchitecture == CpuArchitecture.x86)
+	            {
+	                image = LibraryLoader.Load(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Libs", "32bit", "openal.dll"));
+	            }
+	            else if (PlatformDetails.CpuArchitecture == CpuArchitecture.x64)
+	            {
+	                image = LibraryLoader.Load(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Libs", "64bit", "openal.dll"));
+	            }
+			}
+            if (image != IntPtr.Zero)
             {
-                LibraryLoader.Load(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Libs", "32bit", "openal.dll"));
-            }
-            else if (PlatformDetails.CpuArchitecture == CpuArchitecture.x64)
-            {
-                LibraryLoader.Load(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Libs", "64bit", "openal.dll"));
+                //alGetString = (alGetStringDelegate)Marshal.GetDelegateForFunctionPointer(LibraryLoader.ResolveSymbol(image, "alGetString"), typeof(alGetStringDelegate));
+                var type = typeof (API);
+                foreach (var member in type.GetFields(BindingFlags.Static|BindingFlags.NonPublic))
+                {
+                    var methodName = member.Name;
+                    var fieldType = member.FieldType;
+                    var ptr = LibraryLoader.ResolveSymbol(image, methodName);
+                    if (ptr == IntPtr.Zero)
+                        throw new Exception(string.Format("Could not resolve symbol \"{0}\"", methodName));
+                    member.SetValue(null, Marshal.GetDelegateForFunctionPointer(ptr, fieldType));
+                }
             }
         }
 
-        [DllImport("openal.dll", CallingConvention = CallingConvention.Cdecl)]
-        internal static extern IntPtr alGetString(int name);
+        internal delegate IntPtr alGetStringDelegate(int name);
+        internal static alGetStringDelegate alGetString;
 
-        [DllImport("openal.dll", CallingConvention = CallingConvention.Cdecl)]
-        internal static extern IntPtr alcGetString([In] IntPtr device, int name);
+        internal delegate IntPtr alcGetStringDelegate([In] IntPtr device, int name);
+        internal static alcGetStringDelegate alcGetString;
 
-        [DllImport("openal.dll", CallingConvention = CallingConvention.Cdecl)]
-        internal static extern sbyte alcIsExtensionPresent([In] IntPtr device, string extensionName);
+        internal delegate sbyte alcIsExtensionPresentDelegate([In] IntPtr device, string extensionName);
+        internal static alcIsExtensionPresentDelegate alcIsExtensionPresent;
 
-        [DllImport("openal.dll", CallingConvention = CallingConvention.Cdecl)]
-        internal static extern sbyte alIsExtensionPresent(string extensionName);
+        internal delegate sbyte alIsExtensionPresentDelegate(string extensionName);
+        internal static alIsExtensionPresentDelegate alIsExtensionPresent;
 
-        [DllImport("openal.dll", CallingConvention = CallingConvention.Cdecl)]
-        internal static extern void alcCaptureStart(IntPtr device);
+        internal delegate  void alcCaptureStartDelegate(IntPtr device);
+        internal static alcCaptureStartDelegate alcCaptureStart;
 
-        [DllImport("openal.dll", CallingConvention = CallingConvention.Cdecl)]
-        internal static extern void alcCaptureStop(IntPtr device);
+        internal delegate  void alcCaptureStopDelegate(IntPtr device);
+        internal static alcCaptureStopDelegate alcCaptureStop;
 
-        [DllImport("openal.dll", CallingConvention = CallingConvention.Cdecl)]
-        internal static extern void alcCaptureSamples(IntPtr device, IntPtr buffer, int numSamples);
+        internal delegate  void alcCaptureSamplesDelegate(IntPtr device, IntPtr buffer, int numSamples);
+        internal static alcCaptureSamplesDelegate alcCaptureSamples;
 
-        [DllImport("openal.dll", CallingConvention = CallingConvention.Cdecl)]
-        internal static extern IntPtr alcCaptureOpenDevice(string deviceName, uint frequency, AudioFormat format, int bufferSize);
+        internal delegate  IntPtr alcCaptureOpenDeviceDelegate(string deviceName, uint frequency, AudioFormat format, int bufferSize);
+        internal static alcCaptureOpenDeviceDelegate alcCaptureOpenDevice;
 
-        [DllImport("openal.dll", CallingConvention = CallingConvention.Cdecl)]
-        internal static extern void alcCaptureCloseDevice(IntPtr device);
+        internal delegate  void alcCaptureCloseDeviceDelegate(IntPtr device);
+        internal static alcCaptureCloseDeviceDelegate alcCaptureCloseDevice;
 
-        [DllImport("openal.dll", CallingConvention = CallingConvention.Cdecl)]
-        internal static extern void alcGetIntegerv(IntPtr device, ALCEnum param, int size, out int data);
+        internal delegate  void alcGetIntegervDelegate(IntPtr device, ALCEnum param, int size, out int data);
+        internal static alcGetIntegervDelegate alcGetIntegerv;
 
-        [DllImport("openal.dll", CallingConvention = CallingConvention.Cdecl)]
-        internal static extern IntPtr alcOpenDevice(string deviceName);
+        internal delegate  IntPtr alcOpenDeviceDelegate(string deviceName);
+        internal static alcOpenDeviceDelegate alcOpenDevice;
 
-        [DllImport("openal.dll", CallingConvention = CallingConvention.Cdecl)]
-        internal static extern IntPtr alcCloseDevice(IntPtr handle);
+        internal delegate  IntPtr alcCloseDeviceDelegate(IntPtr handle);
+        internal static alcCloseDeviceDelegate alcCloseDevice;
 
-        [DllImport("openal.dll", CallingConvention = CallingConvention.Cdecl)]
-        internal extern static IntPtr alcCreateContext(IntPtr device, IntPtr attrlist);
+        internal delegate IntPtr alcCreateContextDelegate(IntPtr device, IntPtr attrlist);
+        internal static alcCreateContextDelegate alcCreateContext;
 
-        [DllImport("openal.dll", CallingConvention = CallingConvention.Cdecl)]
-        internal extern static void alcMakeContextCurrent(IntPtr context);
+        internal delegate void alcMakeContextCurrentDelegate(IntPtr context);
+        internal static alcMakeContextCurrentDelegate alcMakeContextCurrent;
 
-        [DllImport("openal.dll", CallingConvention = CallingConvention.Cdecl)]
-        internal extern static IntPtr alcGetContextsDevice(IntPtr context);
+        internal delegate IntPtr alcGetContextsDeviceDelegate(IntPtr context);
+        internal static alcGetContextsDeviceDelegate alcGetContextsDevice;
 
-        [DllImport("openal.dll", CallingConvention = CallingConvention.Cdecl)]
-        internal extern static IntPtr alcGetCurrentContext();
+        internal delegate IntPtr alcGetCurrentContextDelegate();
+        internal static alcGetCurrentContextDelegate alcGetCurrentContext;
 
-        [DllImport("openal.dll", CallingConvention = CallingConvention.Cdecl)]
-        internal extern static void alcDestroyContext(IntPtr context);
+        internal delegate void alcDestroyContextDelegate(IntPtr context);
+        internal static alcDestroyContextDelegate alcDestroyContext;
 
-        [DllImport("openal.dll", CallingConvention = CallingConvention.Cdecl)]
-        internal static extern void alGetSourcei(uint sourceID, IntSourceProperty property, out int value);
+        internal delegate  void alGetSourceiDelegate(uint sourceID, IntSourceProperty property, out int value);
+        internal static alGetSourceiDelegate alGetSourcei;
 
-        [DllImport("openal.dll", CallingConvention = CallingConvention.Cdecl)]
-        internal static extern void alSourcePlay(uint sourceID);
+        internal delegate  void alSourcePlayDelegate(uint sourceID);
+        internal static alSourcePlayDelegate alSourcePlay;
 
-        [DllImport("openal.dll", CallingConvention = CallingConvention.Cdecl)]
-        internal static extern void alSourcePause(uint sourceID);
+        internal delegate  void alSourcePauseDelegate(uint sourceID);
+        internal static alSourcePauseDelegate alSourcePause;
 
-        [DllImport("openal.dll", CallingConvention = CallingConvention.Cdecl)]
-        internal static extern void alSourceStop(uint sourceID);
+        internal delegate  void alSourceStopDelegate(uint sourceID);
+        internal static alSourceStopDelegate alSourceStop;
 
-        [DllImport("openal.dll", CallingConvention = CallingConvention.Cdecl)]
-        internal static extern void alSourceQueueBuffers(uint sourceID, int number, uint[] bufferIDs);
+        internal delegate  void alSourceQueueBuffersDelegate(uint sourceID, int number, uint[] bufferIDs);
+        internal static alSourceQueueBuffersDelegate alSourceQueueBuffers;
 
-        [DllImport("openal.dll", CallingConvention = CallingConvention.Cdecl)]
-        internal static extern void alSourceUnqueueBuffers(uint sourceID, int buffers, uint[] buffersDequeued);
+        internal delegate  void alSourceUnqueueBuffersDelegate(uint sourceID, int buffers, uint[] buffersDequeued);
+        internal static alSourceUnqueueBuffersDelegate alSourceUnqueueBuffers;
 
-        [DllImport("openal.dll", CallingConvention = CallingConvention.Cdecl)]
-        internal static extern void alGenSources(int count, uint[] sources);
+        internal delegate  void alGenSourcesDelegate(int count, uint[] sources);
+        internal static alGenSourcesDelegate alGenSources;
 
-        [DllImport("openal.dll", CallingConvention = CallingConvention.Cdecl)]
-        internal static extern void alDeleteSources(int count, uint[] sources);
+        internal delegate  void alDeleteSourcesDelegate(int count, uint[] sources);
+        internal static alDeleteSourcesDelegate alDeleteSources;
 
-        [DllImport("openal.dll", CallingConvention = CallingConvention.Cdecl)]
-        internal static extern void alGetSourcef(uint sourceID, FloatSourceProperty property, out float value);
+        internal delegate  void alGetSourcefDelegate(uint sourceID, FloatSourceProperty property, out float value);
+        internal static alGetSourcefDelegate alGetSourcef;
 
-        [DllImport("openal.dll", CallingConvention = CallingConvention.Cdecl)]
-        internal static extern void alGetSource3f(uint sourceID, FloatSourceProperty property, out float val1, out float val2, out float val3);
+        internal delegate  void alGetSource3fDelegate(uint sourceID, FloatSourceProperty property, out float val1, out float val2, out float val3);
+        internal static alGetSource3fDelegate alGetSource3f;
 
-        [DllImport("openal.dll", CallingConvention = CallingConvention.Cdecl)]
-        internal static extern void alSourcef(uint sourceID, FloatSourceProperty property, float value);
+        internal delegate  void alSourcefDelegate(uint sourceID, FloatSourceProperty property, float value);
+        internal static alSourcefDelegate alSourcef;
 
-        [DllImport("openal.dll", CallingConvention = CallingConvention.Cdecl)]
-        internal static extern void alSource3f(uint sourceID, FloatSourceProperty property, float val1, float val2, float val3);
+        internal delegate  void alSource3fDelegate(uint sourceID, FloatSourceProperty property, float val1, float val2, float val3);
+        internal static alSource3fDelegate alSource3f;
 
-        [DllImport("openal.dll", CallingConvention = CallingConvention.Cdecl)]
-        internal static extern void alGetBufferi(uint bufferID, ALEnum property, out int value);
+        internal delegate  void alGetBufferiDelegate(uint bufferID, ALEnum property, out int value);
+        internal static alGetBufferiDelegate alGetBufferi;
 
-        [DllImport("openal.dll", CallingConvention = CallingConvention.Cdecl)]
-        internal static extern void alGenBuffers(int count, uint[] bufferIDs);
+        internal delegate  void alGenBuffersDelegate(int count, uint[] bufferIDs);
+        internal static alGenBuffersDelegate alGenBuffers;
 
-        [DllImport("openal.dll", CallingConvention = CallingConvention.Cdecl)]
-        internal static extern void alBufferData(uint bufferID, AudioFormat format, IntPtr data, int byteSize, uint frequency);
+        internal delegate  void alBufferDataDelegate(uint bufferID, AudioFormat format, IntPtr data, int byteSize, uint frequency);
+        internal static alBufferDataDelegate alBufferData;
 
-        [DllImport("openal.dll", CallingConvention = CallingConvention.Cdecl)]
-        internal static extern void alDeleteBuffers(int numBuffers, uint[] bufferIDs);
+        internal delegate  void alDeleteBuffersDelegate(int numBuffers, uint[] bufferIDs);
+        internal static alDeleteBuffersDelegate alDeleteBuffers;
 
-        [DllImport("openal.dll", CallingConvention = CallingConvention.Cdecl)]
-        internal static extern void alListenerf(FloatSourceProperty param, float val);
+        internal delegate  void alListenerfDelegate(FloatSourceProperty param, float val);
+        internal static alListenerfDelegate alListenerf;
 
-        [DllImport("openal.dll", CallingConvention = CallingConvention.Cdecl)]
-        internal static extern void alListenerfv(FloatSourceProperty param, float[] val);
+        internal delegate  void alListenerfvDelegate(FloatSourceProperty param, float[] val);
+        internal static alListenerfvDelegate alListenerfv;
 
-        [DllImport("openal.dll", CallingConvention = CallingConvention.Cdecl)]
-        internal static extern void alListener3f(FloatSourceProperty param, float val1, float val2, float val3);
+        internal delegate  void alListener3fDelegate(FloatSourceProperty param, float val1, float val2, float val3);
+        internal static alListener3fDelegate alListener3f;
 
-        [DllImport("openal.dll", CallingConvention = CallingConvention.Cdecl)]
-        internal static extern void alGetListener3f(FloatSourceProperty param, out float val1, out float val2, out float val3);
+        internal delegate  void alGetListener3fDelegate(FloatSourceProperty param, out float val1, out float val2, out float val3);
+        internal static alGetListener3fDelegate alGetListener3f;
 
-        [DllImport("openal.dll", CallingConvention = CallingConvention.Cdecl)]
-        internal static extern void alGetListenerf(FloatSourceProperty param, out float val);
+        internal delegate  void alGetListenerfDelegate(FloatSourceProperty param, out float val);
+        internal static alGetListenerfDelegate alGetListenerf;
 
-        [DllImport("openal.dll", CallingConvention = CallingConvention.Cdecl)]
-        internal static extern void alGetListenerfv(FloatSourceProperty param, float[] val);
+        internal delegate  void alGetListenerfvDelegate(FloatSourceProperty param, float[] val);
+        internal static alGetListenerfvDelegate alGetListenerfv;
     }
 }

@@ -36,14 +36,17 @@ namespace FragLabs.Aural.Encoding.Opus
     {
         static API()
         {
-            if (PlatformDetails.CpuArchitecture == CpuArchitecture.x86)
-            {
-                LibraryLoader.Load(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Libs", "32bit", "opus.dll"));
-            }
-            else if (PlatformDetails.CpuArchitecture == CpuArchitecture.x64)
-            {
-                LibraryLoader.Load(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Libs", "64bit", "opus.dll"));
-            }
+			if (PlatformDetails.IsWindows)
+			{
+	            if (PlatformDetails.CpuArchitecture == CpuArchitecture.x86)
+	            {
+	                LibraryLoader.Load(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Libs", "32bit", "opus.dll"));
+	            }
+	            else if (PlatformDetails.CpuArchitecture == CpuArchitecture.x64)
+	            {
+	                LibraryLoader.Load(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Libs", "64bit", "opus.dll"));
+	            }
+			}
         }
 
         [DllImport("opus.dll", CallingConvention = CallingConvention.Cdecl)]
