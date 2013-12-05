@@ -24,6 +24,7 @@
 // 
 
 using System;
+using System.IO;
 
 namespace FragLabs.Aural
 {
@@ -34,6 +35,11 @@ namespace FragLabs.Aural
     {
         static PlatformDetails()
         {
+            if (Directory.Exists("/Applications")
+                && Directory.Exists("/System")
+                && Directory.Exists("/Users")
+                && Directory.Exists("/Volumes"))
+                IsMac = true;
             if (IntPtr.Size == 4)
                 CpuArchitecture = CpuArchitecture.x86;
             else if (IntPtr.Size == 8)
@@ -46,5 +52,10 @@ namespace FragLabs.Aural
         /// Gets the current cpu architecture.
         /// </summary>
         public static CpuArchitecture CpuArchitecture { get; private set; }
+
+        /// <summary>
+        /// Gets if the current system is a Mac OSX.
+        /// </summary>
+        public static bool IsMac { get; private set; }
     }
 }

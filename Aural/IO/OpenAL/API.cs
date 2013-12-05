@@ -33,7 +33,11 @@ namespace FragLabs.Aural.IO.OpenAL
     {
         static API()
         {
-            if (PlatformDetails.CpuArchitecture == CpuArchitecture.x86)
+            if (PlatformDetails.IsMac)
+            {
+                
+            }
+            else if (PlatformDetails.CpuArchitecture == CpuArchitecture.x86)
             {
                 LibraryLoader.Load(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Libs", "32bit", "openal.dll"));
             }
