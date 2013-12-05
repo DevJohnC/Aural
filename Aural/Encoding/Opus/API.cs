@@ -25,6 +25,7 @@
 
 using System;
 using System.IO;
+using System.Reflection;
 using System.Runtime.InteropServices;
 
 namespace FragLabs.Aural.Encoding.Opus
@@ -36,41 +37,61 @@ namespace FragLabs.Aural.Encoding.Opus
     {
         static API()
         {
-			if (PlatformDetails.IsWindows)
-			{
-	            if (PlatformDetails.CpuArchitecture == CpuArchitecture.x86)
-	            {
-	                LibraryLoader.Load(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Libs", "32bit", "opus.dll"));
-	            }
-	            else if (PlatformDetails.CpuArchitecture == CpuArchitecture.x64)
-	            {
-	                LibraryLoader.Load(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Libs", "64bit", "opus.dll"));
-	            }
-			}
+            var image = IntPtr.Zero;
+            if (PlatformDetails.IsMac)
+            {
+                image = LibraryLoader.Load(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Libs", "32bit", "libopus.dylib"));
+            }
+            else if (PlatformDetails.IsWindows)
+            {
+                if (PlatformDetails.CpuArchitecture == CpuArchitecture.x86)
+                {
+                    image = LibraryLoader.Load(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Libs", "32bit", "opus.dll"));
+                }
+                else if (PlatformDetails.CpuArchitecture == CpuArchitecture.x64)
+                {
+                    image = LibraryLoader.Load(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Libs", "64bit", "opus.dll"));
+                }
+            }
+
+            if (image != IntPtr.Zero)
+            {
+                var type = typeof(API);
+                foreach (var member in type.GetFields(BindingFlags.Static | BindingFlags.NonPublic))
+                {
+                    var methodName = member.Name;
+                    if (methodName == "opus_encoder_ctl_out") methodName = "opus_encoder_ctl";
+                    var fieldType = member.FieldType;
+                    var ptr = LibraryLoader.ResolveSymbol(image, methodName);
+                    if (ptr == IntPtr.Zero)
+                        throw new Exception(string.Format("Could not resolve symbol \"{0}\"", methodName));
+                    member.SetValue(null, Marshal.GetDelegateForFunctionPointer(ptr, fieldType));
+                }
+            }
         }
 
-        [DllImport("opus.dll", CallingConvention = CallingConvention.Cdecl)]
-        internal static extern IntPtr opus_encoder_create(int sampleRate, int channelCount, int application, out IntPtr error);
+        internal delegate IntPtr opus_encoder_create_delegate(int sampleRate, int channelCount, int application, out IntPtr error);
+        internal static opus_encoder_create_delegate opus_encoder_create;
 
-        [DllImport("opus.dll", CallingConvention = CallingConvention.Cdecl)]
-        internal static extern void opus_encoder_destroy(IntPtr encoder);
+        internal delegate void opus_encoder_destroy_delegate(IntPtr encoder);
+        internal static opus_encoder_destroy_delegate opus_encoder_destroy;
 
-        [DllImport("opus.dll", CallingConvention = CallingConvention.Cdecl)]
-        internal static extern int opus_encode(IntPtr encoder, IntPtr pcm, int frameSize, IntPtr data, int maxDataBytes);
+        internal delegate int opus_encode_delegate(IntPtr encoder, IntPtr pcm, int frameSize, IntPtr data, int maxDataBytes);
+        internal static opus_encode_delegate opus_encode;
 
-        [DllImport("opus.dll", CallingConvention = CallingConvention.Cdecl)]
-        internal static extern IntPtr opus_decoder_create(int sampleRate, int channelCount, out IntPtr error);
+        internal delegate IntPtr opus_decoder_create_delegate(int sampleRate, int channelCount, out IntPtr error);
+        internal static opus_decoder_create_delegate opus_decoder_create;
 
-        [DllImport("opus.dll", CallingConvention = CallingConvention.Cdecl)]
-        internal static extern void opus_decoder_destroy(IntPtr decoder);
+        internal delegate void opus_decoder_destroy_delegate(IntPtr decoder);
+        internal static opus_decoder_destroy_delegate opus_decoder_destroy;
 
-        [DllImport("opus.dll", CallingConvention = CallingConvention.Cdecl)]
-        internal static extern int opus_decode(IntPtr decoder, IntPtr data, int len, IntPtr pcm, int frameSize, int decodeFec);
+        internal delegate int opus_decode_delegate(IntPtr decoder, IntPtr data, int len, IntPtr pcm, int frameSize, int decodeFec);
+        internal static opus_decode_delegate opus_decode;
 
-        [DllImport("opus.dll", CallingConvention = CallingConvention.Cdecl)]
-        internal static extern int opus_encoder_ctl(IntPtr encoder, Ctl request, int value);
+        internal delegate int opus_encoder_ctl_delegate(IntPtr encoder, Ctl request, int value);
+        internal static opus_encoder_ctl_delegate opus_encoder_ctl;
 
-        [DllImport("opus.dll", CallingConvention = CallingConvention.Cdecl)]
-        internal static extern int opus_encoder_ctl(IntPtr encoder, Ctl request, out int value);
+        internal delegate int opus_encoder_ctl_out_delegate(IntPtr encoder, Ctl request, out int value);
+        internal static opus_encoder_ctl_out_delegate opus_encoder_ctl_out;
     }
 }

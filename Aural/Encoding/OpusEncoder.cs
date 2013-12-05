@@ -155,7 +155,7 @@ namespace FragLabs.Aural.Encoding
                 if (_encoder == IntPtr.Zero)
                     throw new ObjectDisposedException("OpusEncoder");
                 int bitrate;
-                var ret = API.opus_encoder_ctl(_encoder, Ctl.GetBitrateRequest, out bitrate);
+                var ret = API.opus_encoder_ctl_out(_encoder, Ctl.GetBitrateRequest, out bitrate);
                 if (ret < 0)
                     throw new Exception("Encoder error - " + ((Errors)ret).ToString());
                 return bitrate;
@@ -173,14 +173,14 @@ namespace FragLabs.Aural.Encoding
         /// <summary>
         /// Gets or sets if Forward Error Correction encoding is enabled.
         /// </summary>
-        public bool FECEnabled
+        public bool EnableForwardErrorCorrection
         {
             get
             {
                 if (_encoder == IntPtr.Zero)
                     throw new ObjectDisposedException("OpusEncoder");
                 int fec;
-                var ret = API.opus_encoder_ctl(_encoder, Ctl.GetInbandFECRequest, out fec);
+                var ret = API.opus_encoder_ctl_out(_encoder, Ctl.GetInbandFECRequest, out fec);
                 if (ret < 0)
                     throw new Exception("Encoder error - " + ((Errors)ret).ToString());
                 return fec > 0;

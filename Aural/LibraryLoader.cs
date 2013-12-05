@@ -39,8 +39,8 @@ namespace FragLabs.Aural
         [DllImport("kernel32", CharSet = CharSet.Ansi, ExactSpelling = true, SetLastError = true)]
         private static extern IntPtr GetProcAddress(IntPtr hModule, string procName);
 
-		[DllImport ("dl", CharSet=CharSet.Ansi)]
-		private static extern IntPtr dlopen(string filename, int flags);
+        [DllImport ("dl", CharSet=CharSet.Ansi)]
+        private static extern IntPtr dlopen(string filename, int flags);
 
         [DllImport("dl", CharSet = CharSet.Ansi)]
         static extern IntPtr dlsym(IntPtr handle, string symbol);

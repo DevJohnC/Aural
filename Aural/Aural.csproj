@@ -100,6 +100,9 @@
     <Folder Include="Processing\Filters\" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Libs\32bit\libopus.dylib">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="readme.md" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
