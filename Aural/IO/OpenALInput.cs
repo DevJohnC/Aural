@@ -209,7 +209,6 @@ namespace FragLabs.Aural.IO
         /// <returns>The total number of bytes written to buffer.</returns>
         public int Read(byte[] buffer, int offset, int sampleCount)
         {
-            if (IsReading) throw new Exception("Device is already being read");
             if (buffer == null) throw new ArgumentNullException("buffer");
             var sampleLength = _sampleSize*sampleCount;
             if (offset + sampleLength > buffer.Length)
