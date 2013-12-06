@@ -33,6 +33,32 @@ namespace FragLabs.Aural.IO
     public interface IAudioInput : IDisposable
     {
         /// <summary>
+        /// Event raised when audio data is received.
+        /// </summary>
+        event EventHandler<AudioReceivedEventArgs> AudioReceived;
+
+        /// <summary>
+        /// Gets the name of the audio input.
+        /// </summary>
+        string Name { get; }
+
+        /// <summary>
+        /// Gets if the audio input is currently being read.
+        /// </summary>
+        bool IsReading { get; }
+
+        /// <summary>
+        /// Starts reading audio samples from the audio input. Will raise AudioReceived when audio samples are read from the input.
+        /// </summary>
+        /// <param name="sampleCount">The number of samples, per channel, to read before raising the AudioReceived event.</param>
+        void StartReading(int sampleCount);
+
+        /// <summary>
+        /// Stops reading audio samples from the audio input.
+        /// </summary>
+        void StopReading();
+
+        /// <summary>
         /// Reads audio samples from the input device into a buffer.
         /// </summary>
         /// <param name="buffer">An array of bytes. When this method returns, the buffer contains the specified byte array with the values starting at offset replaced with audio samples.</param>

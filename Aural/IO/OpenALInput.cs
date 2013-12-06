@@ -80,6 +80,16 @@ namespace FragLabs.Aural.IO
         private readonly int _sampleSize;
 
         /// <summary>
+        /// Number of samples to read from StartReading.
+        /// </summary>
+        internal int ReadSampleCount;
+
+        /// <summary>
+        /// Buffer to write to from StartReading.
+        /// </summary>
+        internal byte[] ReadBuffer;
+
+        /// <summary>
         /// Opens a device for input.
         /// </summary>
         /// <param name="deviceName">Name of input device to open.</param>
@@ -92,6 +102,8 @@ namespace FragLabs.Aural.IO
             if (deviceName == null) throw new ArgumentNullException("deviceName");
             if (bitDepth != 8 && bitDepth != 16) throw new ArgumentOutOfRangeException("bitDepth","Only 8 or 16 bitdepths are supported.");
             if (channelCount != 1 && channelCount != 2) throw new ArgumentOutOfRangeException("channelCount", "Only 1 or 2 channels are supported.");
+
+            Name = deviceName;
 
             var format = AudioFormat.Unknown;
             if (bitDepth == 8 && channelCount == 1)
@@ -119,12 +131,73 @@ namespace FragLabs.Aural.IO
         /// <filterpriority>2</filterpriority>
         public void Dispose()
         {
+            StopReading();
             if (_device != IntPtr.Zero)
             {
                 API.alcCaptureStop(_device);
                 API.alcCaptureCloseDevice(_device);
                 _device = IntPtr.Zero;
             }
+        }
+
+        /// <summary>
+        /// Event raised when audio data is received.
+        /// </summary>
+        public event EventHandler<AudioReceivedEventArgs> AudioReceived;
+
+        protected virtual void OnAudioReceived(AudioReceivedEventArgs e)
+        {
+            var handler = AudioReceived;
+            if (handler != null) handler(this, e);
+        }
+
+        /// <summary>
+        /// Gets the name of the audio input.
+        /// </summary>
+        public string Name { get; private set; }
+
+        /// <summary>
+        /// Gets if the audio input is currently being read.
+        /// </summary>
+        public bool IsReading { get; private set; }
+
+        /// <summary>
+        /// Starts reading audio samples from the audio input. Will raise AudioReceived when audio samples are read from the input.
+        /// </summary>
+        /// <param name="sampleCount">The number of samples, per channel, to read before raising the AudioReceived event.</param>
+        /// <remarks>sampleCount should be small enough to allow any processing of audio samples without overrunning the internal buffer.</remarks>
+        public void StartReading(int sampleCount)
+        {
+            ReadSampleCount = sampleCount;
+            var bufferSize = sampleCount*_sampleSize;
+            ReadBuffer = new byte[bufferSize];
+            IsReading = true;
+            Runner.Add(this);
+        }
+
+        /// <summary>
+        /// Stops reading audio samples from the audio input.
+        /// </summary>
+        public void StopReading()
+        {
+            if (IsReading)
+            {
+                Runner.Remove(this);
+                IsReading = false;
+            }
+        }
+
+        /// <summary>
+        /// Internal read complete call from Runner.
+        /// </summary>
+        internal void ReadComplete(int byteCount)
+        {
+            OnAudioReceived(new AudioReceivedEventArgs
+                {
+                    Buffer = ReadBuffer,
+                    ByteCount = byteCount,
+                    SampleCount = byteCount/_sampleSize
+                });
         }
 
         /// <summary>
@@ -136,6 +209,7 @@ namespace FragLabs.Aural.IO
         /// <returns>The total number of bytes written to buffer.</returns>
         public int Read(byte[] buffer, int offset, int sampleCount)
         {
+            if (IsReading) throw new Exception("Device is already being read");
             if (buffer == null) throw new ArgumentNullException("buffer");
             var sampleLength = _sampleSize*sampleCount;
             if (offset + sampleLength > buffer.Length)
@@ -154,7 +228,7 @@ namespace FragLabs.Aural.IO
         /// Gets the number of samples available for reading immediately.
         /// </summary>
         /// <returns></returns>
-        int GetSamplesAvailable()
+        public int GetSamplesAvailable()
         {
             if (_device == IntPtr.Zero)
                 return 0;

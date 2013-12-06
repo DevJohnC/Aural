@@ -52,6 +52,7 @@
     <Compile Include="Encoding\Opus\Ctl.cs" />
     <Compile Include="Encoding\Opus\Errors.cs" />
     <Compile Include="FormatHelper.cs" />
+    <Compile Include="IO\AudioReceivedEventArgs.cs" />
     <Compile Include="IO\IAudioInput.cs" />
     <Compile Include="IO\IAudioOutput.cs" />
     <Compile Include="IO\OpenALInput.cs" />
@@ -64,6 +65,7 @@
     <Compile Include="IO\OpenAL\FloatSourceProperty.cs" />
     <Compile Include="IO\OpenAL\IntSourceProperty.cs" />
     <Compile Include="IO\OpenAL\PlaybackDevice.cs" />
+    <Compile Include="IO\OpenAL\Runner.cs" />
     <Compile Include="IO\OpenAL\SourceState.cs" />
     <Compile Include="LibraryLoader.cs" />
     <Compile Include="PlatformDetails.cs" />
