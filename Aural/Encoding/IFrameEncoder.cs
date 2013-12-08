@@ -28,9 +28,9 @@ using System;
 namespace FragLabs.Aural.Encoding
 {
     /// <summary>
-    /// Encoder that writes encoded audio to a byte array.
+    /// Encoder that writes encoded audio frames to a buffer suitable for live streaming.
     /// </summary>
-    public interface IBufferEncoder : IDisposable
+    public interface IFrameEncoder : IDisposable
     {
         /// <summary>
         /// Encode audio samples.

@@ -31,7 +31,7 @@ namespace FragLabs.Aural.Encoding
     /// <summary>
     /// Opus decoder.
     /// </summary>
-    public class OpusDecoder : IBufferDecoder
+    public class OpusDecoder : IFrameDecoder
     {
         /// <summary>
         /// Opus decoder.
@@ -46,7 +46,7 @@ namespace FragLabs.Aural.Encoding
         /// <summary>
         /// Gets or sets if Forward Error Correction decoding is enabled.
         /// </summary>
-        public bool FECEnabled { get; set; }
+        public bool EnableForwardErrorCorrection { get; set; }
 
         public OpusDecoder(int outputSampleRate, int outputChannelCount)
         {
@@ -115,7 +115,7 @@ namespace FragLabs.Aural.Encoding
                 else
                 {
                     //  todo: check that frameCount is a multiple of 2.5ms
-                    length = API.opus_decode(_decoder, IntPtr.Zero, 0, decodedPtr, frameCount, Convert.ToInt32(FECEnabled));
+                    length = API.opus_decode(_decoder, IntPtr.Zero, 0, decodedPtr, frameCount, Convert.ToInt32(EnableForwardErrorCorrection));
                 }
             }
             if (length < 0)

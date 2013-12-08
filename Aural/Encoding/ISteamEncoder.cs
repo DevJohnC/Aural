@@ -29,6 +29,7 @@ namespace FragLabs.Aural.Encoding
 {
     /// <summary>
     /// Encoder that writes encoded audio to a <see cref="System.IO.Stream" />.
+    /// Typically requires a seekable and writable stream. Not suitable for live streaming.
     /// </summary>
     public interface ISteamEncoder : IDisposable
     {

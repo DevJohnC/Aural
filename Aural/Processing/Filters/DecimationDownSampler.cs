@@ -28,13 +28,13 @@ using System;
 namespace FragLabs.Aural.Processing.Filters
 {
     /// <summary>
-    /// Basic downsampler.
+    /// Integer decimation downsampler.
     /// </summary>
-    public class BasicDownSampler : IAudioFilter
+    public class DecimationDownSampler : IAudioFilter
     {
         private readonly int _downsampleFactor;
 
-        public BasicDownSampler(AudioFormat inputFormat, int downsampleFactor)
+        public DecimationDownSampler(AudioFormat inputFormat, int downsampleFactor)
         {
             _downsampleFactor = downsampleFactor;
             InputAudioFormat = inputFormat;
