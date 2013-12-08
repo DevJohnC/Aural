@@ -41,6 +41,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AudioFormat.cs" />
     <Compile Include="CpuArchitecture.cs" />
     <Compile Include="Encoding\IBufferDecoder.cs" />
     <Compile Include="Encoding\IBufferEncoder.cs" />
@@ -70,6 +71,10 @@
     <Compile Include="LibraryLoader.cs" />
     <Compile Include="PlatformDetails.cs" />
     <Compile Include="Processing\FFT.cs" />
+    <Compile Include="Processing\Filters\BasicDownSampler.cs" />
+    <Compile Include="Processing\Filters\FilterChain.cs" />
+    <Compile Include="Processing\Filters\IAudioFilter.cs" />
+    <Compile Include="Processing\Filters\LowPass.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -98,9 +103,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Processing\Filters\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <None Include="Libs\32bit\libopus.dylib">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

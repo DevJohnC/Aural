@@ -28,6 +28,7 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Threading;
 using FragLabs.Aural.IO.OpenAL;
+using ALAudioFormat = FragLabs.Aural.IO.OpenAL.AudioFormat;
 
 namespace FragLabs.Aural.IO
 {
@@ -93,30 +94,35 @@ namespace FragLabs.Aural.IO
         /// Opens a device for input.
         /// </summary>
         /// <param name="deviceName">Name of input device to open.</param>
-        /// <param name="readSampleRate">Sample rate in Hz.</param>
-        /// <param name="bitDepth">Bitdepth, 8 or 16.</param>
-        /// <param name="channelCount">Number of channel, 1 or 2.</param>
+        /// <param name="recordFormat">Audio recording format.</param>
         /// <param name="internalBufferSize">Size of internal sample buffer in bytes.</param>
-        public OpenALInput(string deviceName, int readSampleRate, int bitDepth, int channelCount, int internalBufferSize)
+        public OpenALInput(string deviceName, AudioFormat recordFormat, int internalBufferSize)
         {
             if (deviceName == null) throw new ArgumentNullException("deviceName");
-            if (bitDepth != 8 && bitDepth != 16) throw new ArgumentOutOfRangeException("bitDepth","Only 8 or 16 bitdepths are supported.");
-            if (channelCount != 1 && channelCount != 2) throw new ArgumentOutOfRangeException("channelCount", "Only 1 or 2 channels are supported.");
+            if (recordFormat == null) throw new ArgumentNullException("recordFormat");
+            if (recordFormat.BitDepth != 8 && recordFormat.BitDepth != 16) throw new ArgumentOutOfRangeException("recordFormat", "Only 8 or 16 bitdepths are supported.");
+            if (recordFormat.Channels != 1 && recordFormat.Channels != 2) throw new ArgumentOutOfRangeException("recordFormat", "Only 1 or 2 channels are supported.");
 
             Name = deviceName;
+            Format = new AudioFormat
+                {
+                    BitDepth = recordFormat.BitDepth,
+                    Channels = recordFormat.Channels,
+                    SampleRate = recordFormat.SampleRate
+                };
 
-            var format = AudioFormat.Unknown;
-            if (bitDepth == 8 && channelCount == 1)
-                format = AudioFormat.Mono8Bit;
-            if (bitDepth == 8 && channelCount == 2)
-                format = AudioFormat.Stereo8Bit;
-            if (bitDepth == 16 && channelCount == 1)
-                format = AudioFormat.Mono16Bit;
-            if (bitDepth == 16 && channelCount == 2)
-                format = AudioFormat.Stereo16Bit;
+            var format = ALAudioFormat.Unknown;
+            if (recordFormat.BitDepth == 8 && recordFormat.Channels == 1)
+                format = ALAudioFormat.Mono8Bit;
+            if (recordFormat.BitDepth == 8 && recordFormat.Channels == 2)
+                format = ALAudioFormat.Stereo8Bit;
+            if (recordFormat.BitDepth == 16 && recordFormat.Channels == 1)
+                format = ALAudioFormat.Mono16Bit;
+            if (recordFormat.BitDepth == 16 && recordFormat.Channels == 2)
+                format = ALAudioFormat.Stereo16Bit;
 
-            _sampleSize = FormatHelper.SampleSize(bitDepth, channelCount);
-            _device = API.alcCaptureOpenDevice(deviceName, (uint)readSampleRate, format, internalBufferSize);
+            _sampleSize = FormatHelper.SampleSize(recordFormat.BitDepth, recordFormat.Channels);
+            _device = API.alcCaptureOpenDevice(deviceName, (uint)recordFormat.SampleRate, format, internalBufferSize);
             API.alcCaptureStart(_device);
         }
 
@@ -160,6 +166,11 @@ namespace FragLabs.Aural.IO
         /// Gets if the audio input is currently being read.
         /// </summary>
         public bool IsReading { get; private set; }
+
+        /// <summary>
+        /// Gets the audio format of input.
+        /// </summary>
+        public AudioFormat Format { get; private set; }
 
         /// <summary>
         /// Starts reading audio samples from the audio input. Will raise AudioReceived when audio samples are read from the input.

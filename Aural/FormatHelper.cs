@@ -22,6 +22,9 @@
 //  OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 //  WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //  
+
+using System;
+
 namespace FragLabs.Aural
 {
     /// <summary>
@@ -38,6 +41,32 @@ namespace FragLabs.Aural
         public static int SampleSize(int bitDepth, int channelCount)
         {
             return (bitDepth/8)*channelCount;
+        }
+
+        public static double[] Convert16BitToDouble(byte[] input)
+        {
+            var inputSamples = input.Length / (16 / 8);
+            var output = new double[inputSamples];
+            var outputIndex = 0;
+            for (var n = 0; n < inputSamples; n++)
+            {
+                var sample = BitConverter.ToInt16(input, n * 2);
+                output[outputIndex++] = sample / 32768f;
+            }
+            return output;
+        }
+
+        public static byte[] ConvertDoubleto16Bit(double[] input)
+        {
+            var inputSamples = input.Length;
+            var output = new byte[inputSamples*2];
+            for (var i = 0; i < inputSamples; i++)
+            {
+                var sample = input[i]*32768f;
+                var asBytes = BitConverter.GetBytes((short) sample);
+                Buffer.BlockCopy(asBytes, 0, output, i*2, 2);
+            }
+            return output;
         }
     }
 }

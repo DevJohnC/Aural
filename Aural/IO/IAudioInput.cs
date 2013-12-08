@@ -48,6 +48,11 @@ namespace FragLabs.Aural.IO
         bool IsReading { get; }
 
         /// <summary>
+        /// Gets the audio format of input.
+        /// </summary>
+        AudioFormat Format { get; }
+
+        /// <summary>
         /// Starts reading audio samples from the audio input. Will raise AudioReceived when audio samples are read from the input.
         /// </summary>
         /// <param name="sampleCount">The number of samples, per channel, to read before raising the AudioReceived event.</param>

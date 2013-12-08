@@ -27,6 +27,7 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using FragLabs.Aural.IO.OpenAL;
+using ALAudioFormat = FragLabs.Aural.IO.OpenAL.AudioFormat;
 
 namespace FragLabs.Aural.IO
 {
@@ -106,7 +107,7 @@ namespace FragLabs.Aural.IO
         /// </summary>
         private uint _source;
 
-        private readonly AudioFormat _format;
+        private readonly ALAudioFormat _format;
 
         /// <summary>
         /// Available buffers.
@@ -128,26 +129,26 @@ namespace FragLabs.Aural.IO
         /// </summary>
         private int _token;
 
-        public OpenALOutput(string deviceName, int outputSampleRate, int bitDepth, int channelCount)
+        public OpenALOutput(string deviceName, AudioFormat outputFormat)
         {
-            OutputSampleRate = (uint)outputSampleRate;
-            BitDepth = bitDepth;
-            ChannelCount = channelCount;
+            OutputSampleRate = (uint)outputFormat.SampleRate;
+            BitDepth = outputFormat.BitDepth;
+            ChannelCount = outputFormat.Channels;
             if (deviceName == null) throw new ArgumentNullException("deviceName");
-            if (bitDepth != 8 && bitDepth != 16) throw new ArgumentOutOfRangeException("bitDepth", "Only 8 or 16 bitdepths are supported.");
-            if (channelCount != 1 && channelCount != 2) throw new ArgumentOutOfRangeException("channelCount", "Only 1 or 2 channels are supported.");
+            if (outputFormat.BitDepth != 8 && outputFormat.BitDepth != 16) throw new ArgumentOutOfRangeException("outputFormat", "Only 8 or 16 bitdepths are supported.");
+            if (outputFormat.Channels != 1 && outputFormat.Channels != 2) throw new ArgumentOutOfRangeException("outputFormat", "Only 1 or 2 channels are supported.");
 
-            _format = AudioFormat.Unknown;
-            if (bitDepth == 8 && channelCount == 1)
-                _format = AudioFormat.Mono8Bit;
-            if (bitDepth == 8 && channelCount == 2)
-                _format = AudioFormat.Stereo8Bit;
-            if (bitDepth == 16 && channelCount == 1)
-                _format = AudioFormat.Mono16Bit;
-            if (bitDepth == 16 && channelCount == 2)
-                _format = AudioFormat.Stereo16Bit;
+            _format = ALAudioFormat.Unknown;
+            if (outputFormat.BitDepth == 8 && outputFormat.Channels == 1)
+                _format = ALAudioFormat.Mono8Bit;
+            if (outputFormat.BitDepth == 8 && outputFormat.Channels == 2)
+                _format = ALAudioFormat.Stereo8Bit;
+            if (outputFormat.BitDepth == 16 && outputFormat.Channels == 1)
+                _format = ALAudioFormat.Mono16Bit;
+            if (outputFormat.BitDepth == 16 && outputFormat.Channels == 2)
+                _format = ALAudioFormat.Stereo16Bit;
 
-            _sampleSize = FormatHelper.SampleSize(bitDepth, channelCount);
+            _sampleSize = FormatHelper.SampleSize(outputFormat.BitDepth, outputFormat.Channels);
             _context = PlaybackDevice.GetContext(deviceName);
             _token = PlaybackDevice.GetToken(deviceName);
             //  todo: error checking
