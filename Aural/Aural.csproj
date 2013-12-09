@@ -43,8 +43,8 @@
   <ItemGroup>
     <Compile Include="AudioFormat.cs" />
     <Compile Include="CpuArchitecture.cs" />
-    <Compile Include="Encoding\IBufferDecoder.cs" />
-    <Compile Include="Encoding\IBufferEncoder.cs" />
+    <Compile Include="Encoding\IFrameDecoder.cs" />
+    <Compile Include="Encoding\IFrameEncoder.cs" />
     <Compile Include="Encoding\ISteamEncoder.cs" />
     <Compile Include="Encoding\OpusDecoder.cs" />
     <Compile Include="Encoding\OpusEncoder.cs" />
@@ -71,7 +71,7 @@
     <Compile Include="LibraryLoader.cs" />
     <Compile Include="PlatformDetails.cs" />
     <Compile Include="Processing\FFT.cs" />
-    <Compile Include="Processing\Filters\BasicDownSampler.cs" />
+    <Compile Include="Processing\Filters\DecimationDownSampler.cs" />
     <Compile Include="Processing\Filters\FilterChain.cs" />
     <Compile Include="Processing\Filters\IAudioFilter.cs" />
     <Compile Include="Processing\Filters\LowPass.cs" />
