@@ -53,6 +53,10 @@ namespace FragLabs.Aural.Encoding.Opus
                     image = LibraryLoader.Load(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Libs", "64bit", "opus.dll"));
                 }
             }
+            else
+            {
+                image = LibraryLoader.Load("libopus.so.0");
+            }
 
             if (image != IntPtr.Zero)
             {

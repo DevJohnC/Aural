@@ -41,14 +41,18 @@ namespace FragLabs.Aural.IO.OpenAL
             }
             else if (PlatformDetails.IsWindows)
             {
-	        if (PlatformDetails.CpuArchitecture == CpuArchitecture.x86)
-	        {
-	            image = LibraryLoader.Load(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Libs", "32bit", "openal.dll"));
-	        }
-	        else if (PlatformDetails.CpuArchitecture == CpuArchitecture.x64)
-	        {
-	            image = LibraryLoader.Load(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Libs", "64bit", "openal.dll"));
-	        }
+	            if (PlatformDetails.CpuArchitecture == CpuArchitecture.x86)
+	            {
+	                image = LibraryLoader.Load(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Libs", "32bit", "openal.dll"));
+	            }
+	            else if (PlatformDetails.CpuArchitecture == CpuArchitecture.x64)
+	            {
+	                image = LibraryLoader.Load(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Libs", "64bit", "openal.dll"));
+	            }
+            }
+            else
+            {
+                image = LibraryLoader.Load("libopenal.so.1");
             }
 
             if (image != IntPtr.Zero)
