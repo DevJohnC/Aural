@@ -32,14 +32,43 @@ namespace FragLabs.Aural.IO
     /// </summary>
     public interface IAudioOutput : IDisposable
     {
+        /// <summary>
+        /// Gets a value indicating if the audio output is currently playing.
+        /// </summary>
         bool IsPlaying { get; }
+        /// <summary>
+        /// Gets a value indicating if the audio output is currently stopped.
+        /// </summary>
         bool IsStopped { get; }
+        /// <summary>
+        /// Gets a value indicating if the audio output is currently paused.
+        /// </summary>
         bool IsPaused { get; }
 
+        /// <summary>
+        /// Gets the number of frames queued for playback. May not be precise.
+        /// </summary>
+        int QueuedSampleCount { get; }
+
+        /// <summary>
+        /// Begins audio playback.
+        /// </summary>
         void Play();
+        /// <summary>
+        /// Stops audio playback.
+        /// </summary>
         void Stop();
+        /// <summary>
+        /// Pauses audio playback.
+        /// </summary>
         void Pause();
 
+        /// <summary>
+        /// Queues PCM samples to be played.
+        /// </summary>
+        /// <param name="pcmBuffer"></param>
+        /// <param name="offset"></param>
+        /// <param name="sampleCount"></param>
         void Write(byte[] pcmBuffer, int offset, int sampleCount);
     }
 }

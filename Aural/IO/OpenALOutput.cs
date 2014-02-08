@@ -117,7 +117,9 @@ namespace FragLabs.Aural.IO
         /// <summary>
         /// Buffers queued for playback on the source.
         /// </summary>
-        private readonly List<uint> _queuedBuffers = new List<uint>(); 
+        private readonly List<uint> _queuedBuffers = new List<uint>();
+
+        private readonly Dictionary<uint,int> _bufferSampleCounts = new Dictionary<uint, int>(); 
 
         /// <summary>
         /// OpenAL context.
@@ -128,6 +130,8 @@ namespace FragLabs.Aural.IO
         /// Token issued by PlaybackDevice.
         /// </summary>
         private int _token;
+
+        private int _queuedSampleCount;
 
         public OpenALOutput(string deviceName, AudioFormat outputFormat)
         {
@@ -201,9 +205,20 @@ namespace FragLabs.Aural.IO
                     API.alBufferData(bufferId, _format, pcmPtr, pcmLength, OutputSampleRate);
                     API.alSourceQueueBuffers(_source, 1, new[] {bufferId});
                 }
+                _bufferSampleCounts[bufferId] = sampleCount;
                 _queuedBuffers.Add(bufferId);
+                QueuedSampleCount += sampleCount;
             }
             CleanupPlayedBuffers();
+        }
+
+        /// <summary>
+        /// Gets the number of frames queued for playback.
+        /// </summary>
+        public int QueuedSampleCount
+        {
+            get { CleanupPlayedBuffers(); return _queuedSampleCount; }
+            private set { _queuedSampleCount = value; }
         }
 
         /// <summary>
@@ -302,6 +317,14 @@ namespace FragLabs.Aural.IO
                 else
                 {
                     API.alDeleteBuffers(buffers, removedBuffers);
+                }
+                foreach (var bufferId in removedBuffers)
+                {
+                    var sampleCount = 0;
+                    if (_bufferSampleCounts.TryGetValue(bufferId, out sampleCount))
+                    {
+                        _queuedSampleCount -= sampleCount;
+                    }
                 }
             }
         }
