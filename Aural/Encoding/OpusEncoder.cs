@@ -89,6 +89,7 @@ namespace FragLabs.Aural.Encoding
             {
                 PermittedFrameSizes[i] = Convert.ToInt32(srcSamplingRate/1000*_permittedFrameSizes[i]);
             }
+            DefaultFrameSize = PermittedFrameSizes[2];  // default to 20ms encoding frames
         }
 
         ~OpusEncoder()
@@ -144,6 +145,11 @@ namespace FragLabs.Aural.Encoding
         /// Permitted frame sizes in samples per channel.
         /// </summary>
         public int[] PermittedFrameSizes { get; private set; }
+
+        /// <summary>
+        /// Gets the default frame size in samples per channel.
+        /// </summary>
+        public int DefaultFrameSize { get; private set; }
 
         /// <summary>
         /// Gets or sets the bitrate setting of the encoding.

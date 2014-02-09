@@ -42,5 +42,15 @@ namespace FragLabs.Aural.Encoding
         /// <param name="sampleCount">The number of samples, per channel, to encode.</param>
         /// <returns>The total number of bytes written to dstOutputBuffer.</returns>
         int Encode(byte[] srcPcmSamples, int srcOffset, byte[] dstOutputBuffer, int dstOffset, int sampleCount);
+
+        /// <summary>
+        /// Permitted frame sizes in samples per channel.
+        /// </summary>
+        int[] PermittedFrameSizes { get; }
+
+        /// <summary>
+        /// Gets the default frame size in samples per channel.
+        /// </summary>
+        int DefaultFrameSize { get; }
     }
 }
