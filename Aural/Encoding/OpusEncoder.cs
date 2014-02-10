@@ -32,7 +32,7 @@ namespace FragLabs.Aural.Encoding
     /// <summary>
     /// Opus encoder.
     /// </summary>
-    public class OpusEncoder : IFrameEncoder
+    public class OpusEncoder : IFrameWindowEncoder
     {
         /// <summary>
         /// Opus encoder.

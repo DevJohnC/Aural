@@ -43,9 +43,10 @@
   <ItemGroup>
     <Compile Include="AudioFormat.cs" />
     <Compile Include="CpuArchitecture.cs" />
-    <Compile Include="Encoding\IFrameDecoder.cs" />
-    <Compile Include="Encoding\IFrameEncoder.cs" />
-    <Compile Include="Encoding\ISteamEncoder.cs" />
+    <Compile Include="Encoding\IFrameWindowDecoder.cs" />
+    <Compile Include="Encoding\IFrameWindowEncoder.cs" />
+    <Compile Include="Encoding\IScatteredAccessDecoder.cs" />
+    <Compile Include="Encoding\IScatteredAccessEncoder.cs" />
     <Compile Include="Encoding\OpusDecoder.cs" />
     <Compile Include="Encoding\OpusEncoder.cs" />
     <Compile Include="Encoding\Opus\API.cs" />

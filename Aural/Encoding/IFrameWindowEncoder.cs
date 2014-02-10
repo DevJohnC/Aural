@@ -30,7 +30,7 @@ namespace FragLabs.Aural.Encoding
     /// <summary>
     /// Encoder that writes encoded audio frames to a buffer suitable for live streaming.
     /// </summary>
-    public interface IFrameEncoder : IDisposable
+    public interface IFrameWindowEncoder : IDisposable
     {
         /// <summary>
         /// Encode audio samples.

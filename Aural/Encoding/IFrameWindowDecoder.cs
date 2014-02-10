@@ -30,7 +30,7 @@ namespace FragLabs.Aural.Encoding
     /// <summary>
     /// Decoder that writes decoded data to a byte array.
     /// </summary>
-    public interface IFrameDecoder : IDisposable
+    public interface IFrameWindowDecoder : IDisposable
     {
         /// <summary>
         /// Decodes audio samples.
