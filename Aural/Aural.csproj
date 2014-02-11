@@ -53,6 +53,7 @@
     <Compile Include="Encoding\Opus\Application.cs" />
     <Compile Include="Encoding\Opus\Ctl.cs" />
     <Compile Include="Encoding\Opus\Errors.cs" />
+    <Compile Include="Encoding\WaveDecoder.cs" />
     <Compile Include="FormatHelper.cs" />
     <Compile Include="IO\AudioReceivedEventArgs.cs" />
     <Compile Include="IO\IAudioInput.cs" />
