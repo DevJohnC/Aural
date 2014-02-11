@@ -61,8 +61,11 @@ namespace FragLabs.Aural.Encoding
         /// Creates a WaveDecoder instance by reading the RIFF header on a stream.
         /// </summary>
         /// <param name="wavStream"></param>
+        /// <param name="audioFormat"></param>
+        /// <param name="duration"></param>
         /// <returns></returns>
-        public static WaveDecoder FromStream(Stream wavStream)
+        public static WaveDecoder FromStream(Stream wavStream, out AudioFormat audioFormat,
+            out TimeSpan duration)
         {
             var riffHeader = new byte[12];
             wavStream.Read(riffHeader, 0, riffHeader.Length);
@@ -77,9 +80,24 @@ namespace FragLabs.Aural.Encoding
             wavStream.Read(subchunk, 0, subchunk.Length);
 
             var channels = BitConverter.ToInt16(subchunk, 2);
+            var sampleRate = BitConverter.ToInt32(subchunk, 4);
+            var byteRate = BitConverter.ToInt32(subchunk, 8);
+            var bytesPerFullSample = BitConverter.ToInt16(subchunk, 12);
             var bitDepth = BitConverter.ToInt16(subchunk, 14);
 
             wavStream.Read(subchunkHeader, 0, subchunkHeader.Length);
+            var length = BitConverter.ToInt32(subchunkHeader, 4);
+            var sampleCount = length/bytesPerFullSample;
+            var fileDuration = sampleCount/sampleRate;
+
+            duration = TimeSpan.FromSeconds(fileDuration);
+
+            audioFormat = new AudioFormat
+                {
+                    BitDepth = bitDepth,
+                    Channels = channels,
+                    SampleRate = sampleRate
+                };
 
             return new WaveDecoder(bitDepth, channels);
         }
