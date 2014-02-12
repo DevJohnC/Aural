@@ -52,7 +52,7 @@ namespace FragLabs.Aural
         /// <returns></returns>
         internal static IntPtr Load(string fileName)
         {
-            return PlatformDetails.IsWindows ? LoadLibrary(fileName) : dlopen(fileName, 0);
+            return PlatformDetails.IsWindows ? LoadLibrary(fileName) : dlopen(fileName, 1);
         }
 
         /// <summary>
