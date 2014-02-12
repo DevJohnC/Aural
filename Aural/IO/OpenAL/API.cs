@@ -53,7 +53,7 @@ namespace FragLabs.Aural.IO.OpenAL
             else
             {
                 image = LibraryLoader.Load("libopenal.so.1");
-				if (image == null)
+                if (image.Equals(IntPtr.Zero))
 				{
 					image = LibraryLoader.Load(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Libs", "libopenal.so"));
 				}
