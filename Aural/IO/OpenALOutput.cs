@@ -55,6 +55,9 @@ namespace FragLabs.Aural.IO
 
         private static string[] ReadStringsFromMemory(IntPtr location)
         {
+            if (location == IntPtr.Zero)
+                return new string[0];
+
             var strings = new List<string>();
 
             var lastNull = false;
