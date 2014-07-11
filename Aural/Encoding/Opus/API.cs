@@ -78,27 +78,35 @@ namespace FragLabs.Aural.Encoding.Opus
             }
         }
 
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         internal delegate IntPtr opus_encoder_create_delegate(int sampleRate, int channelCount, int application, out IntPtr error);
         internal static opus_encoder_create_delegate opus_encoder_create;
 
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         internal delegate void opus_encoder_destroy_delegate(IntPtr encoder);
         internal static opus_encoder_destroy_delegate opus_encoder_destroy;
 
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         internal delegate int opus_encode_delegate(IntPtr encoder, IntPtr pcm, int frameSize, IntPtr data, int maxDataBytes);
         internal static opus_encode_delegate opus_encode;
 
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         internal delegate IntPtr opus_decoder_create_delegate(int sampleRate, int channelCount, out IntPtr error);
         internal static opus_decoder_create_delegate opus_decoder_create;
 
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         internal delegate void opus_decoder_destroy_delegate(IntPtr decoder);
         internal static opus_decoder_destroy_delegate opus_decoder_destroy;
 
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         internal delegate int opus_decode_delegate(IntPtr decoder, IntPtr data, int len, IntPtr pcm, int frameSize, int decodeFec);
         internal static opus_decode_delegate opus_decode;
 
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         internal delegate int opus_encoder_ctl_delegate(IntPtr encoder, Ctl request, int value);
         internal static opus_encoder_ctl_delegate opus_encoder_ctl;
 
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         internal delegate int opus_encoder_ctl_out_delegate(IntPtr encoder, Ctl request, out int value);
         internal static opus_encoder_ctl_out_delegate opus_encoder_ctl_out;
     }
