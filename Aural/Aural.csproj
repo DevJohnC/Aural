@@ -70,6 +70,8 @@
     <Compile Include="IO\OpenAL\PlaybackDevice.cs" />
     <Compile Include="IO\OpenAL\Runner.cs" />
     <Compile Include="IO\OpenAL\SourceState.cs" />
+    <Compile Include="IO\RaspberryPiOutput.cs" />
+    <Compile Include="IO\RaspberryPi\API.cs" />
     <Compile Include="LibraryLoader.cs" />
     <Compile Include="PlatformDetails.cs" />
     <Compile Include="Processing\FFT.cs" />
@@ -108,6 +110,9 @@
   <ItemGroup />
   <ItemGroup>
     <None Include="Libs\32bit\libopus.dylib">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Libs\librpiaudio.so">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="readme.md" />
