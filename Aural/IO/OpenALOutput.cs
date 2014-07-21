@@ -36,7 +36,7 @@ namespace FragLabs.Aural.IO
     /// </summary>
     public class OpenALOutput : IAudioOutput
     {
-        public static string[] GetOutputDevices()
+        public static OpenALOutput[] GetOutputDevices()
         {
             var strings = new string[0];
             if (GetIsExtensionPresent("ALC_ENUMERATE_ALL_EXT"))
@@ -50,7 +50,12 @@ namespace FragLabs.Aural.IO
                 strings =
                     ReadStringsFromMemory(API.alcGetString(IntPtr.Zero, (int)ALCStrings.ALC_DEVICE_SPECIFIER));
             }
-            return strings;
+            var ret = new OpenALOutput[strings.Length];
+            for (var i = 0; i < strings.Length; i++)
+            {
+                ret[i] = new OpenALOutput(strings[i]);
+            }
+            return ret;
         }
 
         private static string[] ReadStringsFromMemory(IntPtr location)
@@ -103,14 +108,14 @@ namespace FragLabs.Aural.IO
         /// <summary>
         /// Size of each sample in bytes.
         /// </summary>
-        private readonly int _sampleSize;
+        private int _sampleSize;
 
         /// <summary>
         /// OpenAL playback source.
         /// </summary>
         private uint _source;
 
-        private readonly ALAudioFormat _format;
+        private ALAudioFormat _format;
 
         /// <summary>
         /// Available buffers.
@@ -136,31 +141,10 @@ namespace FragLabs.Aural.IO
 
         private int _queuedSampleCount;
 
-        public OpenALOutput(string deviceName, AudioFormat outputFormat)
+        internal OpenALOutput(string deviceName)
         {
-            OutputSampleRate = (uint)outputFormat.SampleRate;
-            BitDepth = outputFormat.BitDepth;
-            ChannelCount = outputFormat.Channels;
             if (deviceName == null) throw new ArgumentNullException("deviceName");
-            if (outputFormat.BitDepth != 8 && outputFormat.BitDepth != 16) throw new ArgumentOutOfRangeException("outputFormat", "Only 8 or 16 bitdepths are supported.");
-            if (outputFormat.Channels != 1 && outputFormat.Channels != 2) throw new ArgumentOutOfRangeException("outputFormat", "Only 1 or 2 channels are supported.");
-
-            _format = ALAudioFormat.Unknown;
-            if (outputFormat.BitDepth == 8 && outputFormat.Channels == 1)
-                _format = ALAudioFormat.Mono8Bit;
-            if (outputFormat.BitDepth == 8 && outputFormat.Channels == 2)
-                _format = ALAudioFormat.Stereo8Bit;
-            if (outputFormat.BitDepth == 16 && outputFormat.Channels == 1)
-                _format = ALAudioFormat.Mono16Bit;
-            if (outputFormat.BitDepth == 16 && outputFormat.Channels == 2)
-                _format = ALAudioFormat.Stereo16Bit;
-
-            _sampleSize = FormatHelper.SampleSize(outputFormat.BitDepth, outputFormat.Channels);
-            _context = PlaybackDevice.GetContext(deviceName);
-            _token = PlaybackDevice.GetToken(deviceName);
-            //  todo: error checking
-            CreateSource();
-            CreateBuffers(6);
+            Name = deviceName;
         }
 
         ~OpenALOutput()
@@ -191,29 +175,7 @@ namespace FragLabs.Aural.IO
             }
         }
 
-        public unsafe void Write(byte[] pcmBuffer, int offset, int sampleCount)
-        {
-            var pcmLength = _sampleSize*sampleCount;
-            if (pcmLength > pcmBuffer.Length - offset)
-                throw new Exception("Sample count is too large to be read from pcm buffer.");
-            if (_availableBuffers.Count == 0)
-                CreateBuffers(1);
-            lock (typeof (PlaybackDevice))
-            {
-                API.alcMakeContextCurrent(_context);
-                var bufferId = _availableBuffers.Dequeue();
-                fixed (byte* bPcm = pcmBuffer)
-                {
-                    var pcmPtr = IntPtr.Add(new IntPtr(bPcm), offset);
-                    API.alBufferData(bufferId, _format, pcmPtr, pcmLength, OutputSampleRate);
-                    API.alSourceQueueBuffers(_source, 1, new[] {bufferId});
-                }
-                _bufferSampleCounts[bufferId] = sampleCount;
-                _queuedBuffers.Add(bufferId);
-                QueuedSampleCount += sampleCount;
-            }
-            CleanupPlayedBuffers();
-        }
+        public string Name { get; private set; }
 
         /// <summary>
         /// Gets the number of frames queued for playback.
@@ -222,6 +184,65 @@ namespace FragLabs.Aural.IO
         {
             get { CleanupPlayedBuffers(); return _queuedSampleCount; }
             private set { _queuedSampleCount = value; }
+        }
+
+        public AudioFormat Format { get; private set; }
+
+        public void Open(AudioFormat outputFormat)
+        {
+            if (IsOpen)
+                Close();
+
+            OutputSampleRate = (uint)outputFormat.SampleRate;
+            BitDepth = outputFormat.BitDepth;
+            ChannelCount = outputFormat.Channels;
+            if (outputFormat.BitDepth != 8 && outputFormat.BitDepth != 16) throw new ArgumentOutOfRangeException("outputFormat", "Only 8 or 16 bitdepths are supported.");
+            if (outputFormat.Channels != 1 && outputFormat.Channels != 2) throw new ArgumentOutOfRangeException("outputFormat", "Only 1 or 2 channels are supported.");
+
+            _format = ALAudioFormat.Unknown;
+            if (outputFormat.BitDepth == 8 && outputFormat.Channels == 1)
+                _format = ALAudioFormat.Mono8Bit;
+            if (outputFormat.BitDepth == 8 && outputFormat.Channels == 2)
+                _format = ALAudioFormat.Stereo8Bit;
+            if (outputFormat.BitDepth == 16 && outputFormat.Channels == 1)
+                _format = ALAudioFormat.Mono16Bit;
+            if (outputFormat.BitDepth == 16 && outputFormat.Channels == 2)
+                _format = ALAudioFormat.Stereo16Bit;
+
+            _sampleSize = FormatHelper.SampleSize(outputFormat.BitDepth, outputFormat.Channels);
+            _context = PlaybackDevice.GetContext(Name);
+            _token = PlaybackDevice.GetToken(Name);
+            //  todo: error checking
+            CreateSource();
+            CreateBuffers(6);
+        }
+
+        public void Close()
+        {
+            if (IsOpen)
+            {
+                if (_source != 0)
+                {
+                    CleanupPlayedBuffers(true);
+                    var buffers = _queuedBuffers.ToArray();
+                    var removedBuffers = new uint[buffers.Length];
+                    API.alSourceUnqueueBuffers(_source, buffers.Length, removedBuffers);
+                    API.alDeleteBuffers(buffers.Length, removedBuffers);
+                    lock (typeof(PlaybackDevice))
+                    {
+                        API.alcMakeContextCurrent(_context);
+                        API.alDeleteSources(1, new[] { _source });
+                        _source = 0;
+                    }
+                }
+                if (_context != IntPtr.Zero)
+                    _context = IntPtr.Zero;
+                if (_token != 0)
+                {
+                    PlaybackDevice.RetireToken(_token);
+                    _token = 0;
+                }
+            }
         }
 
         /// <summary>
@@ -246,6 +267,31 @@ namespace FragLabs.Aural.IO
                 API.alcMakeContextCurrent(_context);
                 API.alSourcePause(_source);
             }
+        }
+
+        public unsafe int Write(byte[] pcmBuffer, int offset, int sampleCount)
+        {
+            var pcmLength = _sampleSize * sampleCount;
+            if (pcmLength > pcmBuffer.Length - offset)
+                throw new Exception("Sample count is too large to be read from pcm buffer.");
+            if (_availableBuffers.Count == 0)
+                CreateBuffers(1);
+            lock (typeof(PlaybackDevice))
+            {
+                API.alcMakeContextCurrent(_context);
+                var bufferId = _availableBuffers.Dequeue();
+                fixed (byte* bPcm = pcmBuffer)
+                {
+                    var pcmPtr = IntPtr.Add(new IntPtr(bPcm), offset);
+                    API.alBufferData(bufferId, _format, pcmPtr, pcmLength, OutputSampleRate);
+                    API.alSourceQueueBuffers(_source, 1, new[] { bufferId });
+                }
+                _bufferSampleCounts[bufferId] = sampleCount;
+                _queuedBuffers.Add(bufferId);
+                QueuedSampleCount += sampleCount;
+            }
+            CleanupPlayedBuffers();
+            return sampleCount;
         }
 
         /// <summary>
@@ -288,6 +334,14 @@ namespace FragLabs.Aural.IO
         public bool IsPaused
         {
             get { return (State == SourceState.Paused); }
+        }
+
+        public bool IsOpen
+        {
+            get
+            {
+                return _source != 0;
+            }
         }
 
         /// <summary>
@@ -338,27 +392,8 @@ namespace FragLabs.Aural.IO
         /// <filterpriority>2</filterpriority>
         public void Dispose()
         {
-            if (_source != 0)
-            {
-                CleanupPlayedBuffers(true);
-                var buffers = _queuedBuffers.ToArray();
-                var removedBuffers = new uint[buffers.Length];
-                API.alSourceUnqueueBuffers(_source, buffers.Length, removedBuffers);
-                API.alDeleteBuffers(buffers.Length, removedBuffers);
-                lock (typeof (PlaybackDevice))
-                {
-                    API.alcMakeContextCurrent(_context);
-                    API.alDeleteSources(1, new [] {_source});
-                    _source = 0;
-                }
-            }
-            if (_context != IntPtr.Zero)
-                _context = IntPtr.Zero;
-            if (_token != 0)
-            {
-                PlaybackDevice.RetireToken(_token);
-                _token = 0;
-            }
+            if (IsOpen)
+                Close();
         }
     }
 }

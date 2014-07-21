@@ -46,9 +46,34 @@ namespace FragLabs.Aural.IO
         bool IsPaused { get; }
 
         /// <summary>
+        /// Gets a value indicating if the audio output is open.
+        /// </summary>
+        bool IsOpen { get; }
+
+        /// <summary>
+        /// Gets the device name.
+        /// </summary>
+        string Name { get; }
+
+        /// <summary>
         /// Gets the number of frames queued for playback. May not be precise.
         /// </summary>
         int QueuedSampleCount { get; }
+
+        /// <summary>
+        /// Gets the audio format.
+        /// </summary>
+        AudioFormat Format { get; }
+
+        /// <summary>
+        /// Open the device for use.
+        /// </summary>
+        void Open(AudioFormat format);
+
+        /// <summary>
+        /// Close the device.
+        /// </summary>
+        void Close();
 
         /// <summary>
         /// Begins audio playback.
@@ -69,6 +94,7 @@ namespace FragLabs.Aural.IO
         /// <param name="pcmBuffer"></param>
         /// <param name="offset"></param>
         /// <param name="sampleCount"></param>
-        void Write(byte[] pcmBuffer, int offset, int sampleCount);
+        /// <returns>The number of samples written.</returns>
+        int Write(byte[] pcmBuffer, int offset, int sampleCount);
     }
 }
